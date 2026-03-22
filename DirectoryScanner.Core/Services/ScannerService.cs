@@ -8,7 +8,7 @@ public class ScannerService
 {
     private readonly int _maxThreads;
 
-    private SemaphoreSlim _semaphore;
+    private SemaphoreSlim _semaphore = null!;
 
     public ScannerService(int maxThreads = 10)
     {
@@ -45,16 +45,7 @@ public class ScannerService
                              incrementOp: () => Interlocked.Increment(ref pendingOperations),
                              completeOp: OperationCompleted));
 
-        using (token.Register(() => tcs.TrySetCanceled()))
-        {
-            try
-            {
-                await tcs.Task;
-            }
-            catch (TaskCanceledException)
-            {
-            }
-        }
+        await tcs.Task;
 
         CalculateFolderSizes(rootNode);
         CalculatePercentages(rootNode, null);
@@ -78,14 +69,13 @@ public class ScannerService
 
                     if (file.LinkTarget != null) continue;
 
-                    var fileNode = new DirectoryItem
+                    node.Children.Add(new DirectoryItem
                     {
                         Name = file.Name,
                         Size = file.Length,
                         Type = ItemType.File
-                    };
+                    });
 
-                    node.Children.Add(fileNode);
                     node.Size += file.Length;
                 }
             }

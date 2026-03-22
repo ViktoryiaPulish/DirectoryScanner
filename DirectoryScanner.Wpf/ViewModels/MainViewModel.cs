@@ -58,7 +58,7 @@ public class MainViewModel : ViewModelBase
 
             try
             {
-                var result = await Task.Run(() => _scannerService.ScanAsync(path, _cts.Token));
+                var result = await _scannerService.ScanAsync(path, _cts.Token);
 
                 Items.Add(result);
                 StatusText = _cts.IsCancellationRequested ? "Scan Cancelled" : "Scan Completed";
